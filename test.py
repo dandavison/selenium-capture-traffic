@@ -22,13 +22,14 @@ class SeleniumMixin(object):
             options={'port': port})
 
     def setUp(self):
-        proxy = self.__class__.browsermob.create_proxy()
+        self.proxy = self.__class__.browsermob.create_proxy()
         browser_profile  = webdriver.FirefoxProfile()
-        browser_profile.set_proxy(proxy.selenium_proxy())
+        browser_profile.set_proxy(self.proxy.selenium_proxy())
         self.driver = webdriver.Remote(
             command_executor=SELENIUM_COMMAND_EXECUTOR,
             desired_capabilities=webdriver.DesiredCapabilities.FIREFOX,
             browser_profile=browser_profile)
+        self.proxy.new_har(self._testMethodName)
 
     @classmethod
     def tearDownClass(cls):
