@@ -1,11 +1,12 @@
 import unittest
+from urlparse import urlparse
 
 import browsermobproxy
 from selenium import webdriver
 
 
 SELENIUM_COMMAND_EXECUTOR = "http://localhost:4444/wd/hub"
-BROWSERMOB = "localhost:9999"
+BROWSERMOB = "http://localhost:9999"
 
 
 class SeleniumMixin(object):
@@ -13,11 +14,12 @@ class SeleniumMixin(object):
 
     @classmethod
     def setUpClass(cls):
-        hostname, port = BROWSERMOB.split(':')
+        hostname, port = urlparse(BROWSERMOB).netloc.split(':')
+        port = int(port)
         arbitrary_existing_file = __file__
         cls.browsermob = browsermobproxy.Server(
             arbitrary_existing_file,
-            options={'port': int(port)})
+            options={'port': port})
 
     def setUp(self):
         proxy = self.__class__.browsermob.create_proxy()
