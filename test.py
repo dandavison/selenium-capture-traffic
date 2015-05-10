@@ -6,7 +6,21 @@ from selenium import webdriver
 
 
 SELENIUM_COMMAND_EXECUTOR = "http://localhost:4444/wd/hub"
-BROWSERMOB = "http://localhost:9999"
+BROWSERMOB = "http://192.168.0.10:9999"
+
+
+class BrowserMob(browsermobproxy.Server):
+
+    def __init__(self, path, options=None):
+        if options is None:
+            options = {}
+        self.hostname = options.pop('hostname', 'localhost')
+        super(BrowserMob, self).__init__(path=path, options=options)
+
+    @property
+    def url(self):
+        return "http://%s:%d" % (self.hostname, self.port)
+
 
 
 class SeleniumMixin(object):
@@ -17,9 +31,9 @@ class SeleniumMixin(object):
         hostname, port = urlparse(BROWSERMOB).netloc.split(':')
         port = int(port)
         arbitrary_existing_file = __file__
-        cls.browsermob = browsermobproxy.Server(
+        cls.browsermob = BrowserMob(
             arbitrary_existing_file,
-            options={'port': port})
+            options={'hostname': hostname, 'port': port})
 
     def setUp(self):
         self.proxy = self.__class__.browsermob.create_proxy()
