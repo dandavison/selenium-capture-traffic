@@ -1,30 +1,37 @@
 import unittest
 
+import browsermobproxy
 from selenium import webdriver
 
 
-DRIVER_PROXY = "192.168.0.0:9999"
-EXECUTOR = "http://localhost:4444/wd/hub"
+SELENIUM_COMMAND_EXECUTOR = "http://localhost:4444/wd/hub"
+BROWSERMOB = "localhost:9999"
 
 
 class SeleniumMixin(object):
+    browsermob = None
+
+    @classmethod
+    def setUpClass(cls):
+        hostname, port = BROWSERMOB.split(':')
+        arbitrary_existing_file = __file__
+        cls.browsermob = browsermobproxy.Server(
+            arbitrary_existing_file,
+            options={'port': int(port)})
 
     def setUp(self):
-        capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
-        if DRIVER_PROXY:
-            capabilities['proxy'] = {
-                'httpProxy': DRIVER_PROXY,
-                'ftpProxy': DRIVER_PROXY,
-                'sslProxy': DRIVER_PROXY,
-                'noProxy': None,
-                'proxyType': 'MANUAL',
-                'class': 'org.openqa.selenium.Proxy',
-                'autodetect': False,
-            }
-        self.driver = webdriver.Remote(EXECUTOR, capabilities)
+        proxy = self.__class__.browsermob.create_proxy()
+        browser_profile  = webdriver.FirefoxProfile()
+        browser_profile.set_proxy(proxy.selenium_proxy())
+        self.driver = webdriver.Remote(
+            command_executor=SELENIUM_COMMAND_EXECUTOR,
+            desired_capabilities=webdriver.DesiredCapabilities.FIREFOX,
+            browser_profile=browser_profile)
 
-    def tearDown(self):
-        self.driver.close()
+    @classmethod
+    def tearDownClass(cls):
+        if cls.browsermob.process:
+            cls.browsermob.stop()
 
 
 class Test(SeleniumMixin, unittest.TestCase):
