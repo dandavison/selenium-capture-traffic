@@ -61,10 +61,25 @@ class SeleniumMixin(object):
             'autodetect': False,
         }
         return capabilities
+
+    def tearDown(self):
+        requests = process_har(self.proxy.har)
+        for method, url in requests:
+            print "%-5s%s" % (method, url)
+        self.proxy.close()
+
     @classmethod
     def tearDownClass(cls):
         if cls.browsermob.process:
             cls.browsermob.stop()
+
+
+def process_har(har):
+    requests = []
+    for entry in har['log']['entries']:
+        request = entry['request']
+        requests.append((request['method'], request['url']))
+    return requests
 
 
 class Test(SeleniumMixin, unittest.TestCase):
