@@ -1,7 +1,11 @@
 package { "default-jre":
-  ensure => installed,
+  ensure => present,
+}
+
+package { "docker.io":
+  ensure => present,
 }
 
 package { "unzip":
-  ensure => installed,
+  ensure => present,
 }
