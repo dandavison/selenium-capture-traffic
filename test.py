@@ -36,7 +36,7 @@ class SeleniumMixin(object):
             options={'hostname': hostname, 'port': port})
 
     def setUp(self):
-        self.proxy = self.__class__.browsermob.create_proxy()
+        self.proxy = self.browsermob.create_proxy()
 
         # TODO: This method of configuring the browser to use the
         # proxy did not seem to work.
