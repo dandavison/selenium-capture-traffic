@@ -37,14 +37,30 @@ class SeleniumMixin(object):
 
     def setUp(self):
         self.proxy = self.__class__.browsermob.create_proxy()
-        browser_profile  = webdriver.FirefoxProfile()
-        browser_profile.set_proxy(self.proxy.selenium_proxy())
+
+        # TODO: This method of configuring the browser to use the
+        # proxy did not seem to work.
+        # browser_profile  = webdriver.FirefoxProfile()
+        # browser_profile.set_proxy(self.proxy.selenium_proxy())
+
         self.driver = webdriver.Remote(
             command_executor=SELENIUM_COMMAND_EXECUTOR,
-            desired_capabilities=webdriver.DesiredCapabilities.FIREFOX,
-            browser_profile=browser_profile)
+            desired_capabilities=self.get_browser_capabilities(),
+            browser_profile=None)
         self.proxy.new_har(self._testMethodName)
 
+    def get_browser_capabilities(self):
+        capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
+        capabilities['proxy'] = {
+            'httpProxy': self.proxy.proxy,
+            'ftpProxy': self.proxy.proxy,
+            'sslProxy': self.proxy.proxy,
+            'noProxy': None,
+            'proxyType': 'MANUAL',
+            'class': 'org.openqa.selenium.Proxy',
+            'autodetect': False,
+        }
+        return capabilities
     @classmethod
     def tearDownClass(cls):
         if cls.browsermob.process:
